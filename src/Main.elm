@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as A
+import Time
 
 
 
@@ -13,7 +14,9 @@ import Html.Attributes as A
 
 
 type alias Model =
-    { board : Board }
+    { board : Board
+    , ticTac : String
+    }
 
 
 type alias Board =
@@ -46,9 +49,13 @@ settings =
     }
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    { board = initialBoard }
+    ( { board = initialBoard
+      , ticTac = "tic"
+      }
+    , Cmd.none
+    )
 
 
 initialBoard : Board
@@ -71,9 +78,26 @@ initialBoard =
 -------------------------------------------------------------------------------
 
 
-update : msg -> Model -> Model
-update _ model =
-    model
+type Msg
+    = Tick Time.Posix
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Tick _ ->
+            let
+                newTicTac =
+                    case model.ticTac of
+                        "tic" ->
+                            "tac"
+
+                        _ ->
+                            "tic"
+            in
+            ( { model | ticTac = newTicTac }
+            , Cmd.none
+            )
 
 
 
@@ -82,17 +106,18 @@ update _ model =
 -------------------------------------------------------------------------------
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.h1 [] [ Html.text "Conway's Game of Life" ]
         , Html.table
             [ A.style "border-spacing" "0" ]
             (viewBoard model.board)
+        , Html.pre [] [ Html.text model.ticTac ]
         ]
 
 
-viewBoard : Board -> List (Html msg)
+viewBoard : Board -> List (Html Msg)
 viewBoard board =
     let
         rowToCells row =
@@ -107,7 +132,7 @@ viewBoard board =
         |> Array.toList
 
 
-viewCell : CellState -> Html msg
+viewCell : CellState -> Html Msg
 viewCell bool =
     let
         color =
@@ -132,10 +157,22 @@ viewCell bool =
 -------------------------------------------------------------------------------
 
 
-main : Program () Model msg
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every 1000 Tick
+
+
+
+-------------------------------------------------------------------------------
+-- MAIN
+-------------------------------------------------------------------------------
+
+
+main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = init
+    Browser.element
+        { init = always init
         , update = update
         , view = view
+        , subscriptions = subscriptions
         }
