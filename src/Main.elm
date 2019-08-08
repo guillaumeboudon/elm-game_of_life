@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as A
+import Html.Events as E
 import Time
 
 
@@ -16,6 +17,7 @@ import Time
 type alias Model =
     { board : Board
     , generation : Int
+    , pause : Bool
     }
 
 
@@ -78,6 +80,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { board = initialBoard
       , generation = 0
+      , pause = True
       }
     , Cmd.none
     )
@@ -108,6 +111,7 @@ initialBoard =
 
 type Msg
     = Tick Time.Posix
+    | TogglePause
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,6 +122,11 @@ update msg model =
                 | board = processNeighbours model.board
                 , generation = model.generation + 1
               }
+            , Cmd.none
+            )
+
+        TogglePause ->
+            ( { model | pause = not model.pause }
             , Cmd.none
             )
 
@@ -210,6 +219,7 @@ view model =
             ]
             (viewBoard model.board)
         , Html.p [] [ Html.text ("Generation: " ++ String.fromInt model.generation) ]
+        , viewPauseButton model.pause
         ]
 
 
@@ -248,6 +258,20 @@ viewCell { state } =
         []
 
 
+viewPauseButton : Bool -> Html Msg
+viewPauseButton pause =
+    let
+        text =
+            case pause of
+                True ->
+                    "Play"
+
+                False ->
+                    "Pause"
+    in
+    Html.button [ E.onClick TogglePause ] [ Html.text text ]
+
+
 
 -------------------------------------------------------------------------------
 -- MAIN
@@ -256,7 +280,12 @@ viewCell { state } =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every 100 Tick
+    case model.pause of
+        True ->
+            Sub.none
+
+        _ ->
+            Time.every 100 Tick
 
 
 
