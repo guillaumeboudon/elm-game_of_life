@@ -65,8 +65,8 @@ newCell state =
 
 
 settings =
-    { width = 21
-    , height = 21
+    { width = 51
+    , height = 51
     , borderStyle = "1px solid #bbb"
     , cellColorAlive = "#000"
     , cellColorDead = "#fff"
@@ -90,9 +90,14 @@ initialBoard =
             Array.repeat settings.height (Array.repeat settings.width (newCell Dead))
     in
     emptyBoard
-        |> setCell (Coordinates 9 10) Alive
-        |> setCell (Coordinates 10 10) Alive
-        |> setCell (Coordinates 11 10) Alive
+        |> setCell (Coordinates 0 0) Alive
+        |> setCell (Coordinates 1 1) Alive
+        |> setCell (Coordinates 2 1) Alive
+        |> setCell (Coordinates 0 2) Alive
+        |> setCell (Coordinates 1 2) Alive
+        |> setCell (Coordinates 15 2) Alive
+        |> setCell (Coordinates 16 2) Alive
+        |> setCell (Coordinates 17 2) Alive
 
 
 
@@ -251,7 +256,7 @@ viewCell { state } =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every 1000 Tick
+    Time.every 100 Tick
 
 
 
