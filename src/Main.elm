@@ -15,6 +15,7 @@ import Time
 
 type alias Model =
     { board : Board
+    , generation : Int
     }
 
 
@@ -75,7 +76,9 @@ settings =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { board = initialBoard }
+    ( { board = initialBoard
+      , generation = 0
+      }
     , Cmd.none
     )
 
@@ -106,7 +109,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            ( { model | board = processNeighbours model.board }
+            ( { model
+                | board = processNeighbours model.board
+                , generation = model.generation + 1
+              }
             , Cmd.none
             )
 
@@ -198,6 +204,7 @@ view model =
             , A.style "border" settings.borderStyle
             ]
             (viewBoard model.board)
+        , Html.p [] [ Html.text ("Generation: " ++ String.fromInt model.generation) ]
         ]
 
 
