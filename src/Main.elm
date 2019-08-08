@@ -15,7 +15,6 @@ import Time
 
 type alias Model =
     { board : Board
-    , ticTac : String
     }
 
 
@@ -53,7 +52,6 @@ settings =
 init : ( Model, Cmd Msg )
 init =
     ( { board = initialBoard
-      , ticTac = "tic"
       }
     , Cmd.none
     )
@@ -87,16 +85,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            let
-                newTicTac =
-                    case model.ticTac of
-                        "tic" ->
-                            "tac"
-
-                        _ ->
-                            "tic"
-            in
-            ( { model | ticTac = newTicTac }
+            ( model
             , Cmd.none
             )
 
@@ -116,7 +105,6 @@ view model =
             , A.style "border" settings.borderStyle
             ]
             (viewBoard model.board)
-        , Html.pre [] [ Html.text model.ticTac ]
         ]
 
 
