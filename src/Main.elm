@@ -43,8 +43,9 @@ type CellState
 settings =
     { width = 21
     , height = 21
-    , cellColorAlive = "#F00"
-    , cellColorDead = "#000"
+    , borderStyle = "1px solid #bbb"
+    , cellColorAlive = "#000"
+    , cellColorDead = "#fff"
     , cellSide = "10px"
     }
 
@@ -111,7 +112,9 @@ view model =
     Html.div []
         [ Html.h1 [] [ Html.text "Conway's Game of Life" ]
         , Html.table
-            [ A.style "border-spacing" "0" ]
+            [ A.style "border-collapse" "collapse"
+            , A.style "border" settings.borderStyle
+            ]
             (viewBoard model.board)
         , Html.pre [] [ Html.text model.ticTac ]
         ]
@@ -145,6 +148,7 @@ viewCell bool =
     in
     Html.td
         [ A.style "background-color" color
+        , A.style "border" settings.borderStyle
         , A.style "width" settings.cellSide
         , A.style "height" settings.cellSide
         ]
