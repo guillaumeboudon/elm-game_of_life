@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as A
@@ -16,7 +17,19 @@ type alias Model =
 
 
 type alias Board =
-    List (List CellState)
+    Array (Array CellState)
+
+
+setCell : { x : Int, y : Int } -> CellState -> Board -> Board
+setCell { x, y } cellState board =
+    let
+        newRow =
+            Array.get y board
+                |> Maybe.withDefault Array.empty
+                |> Array.set x cellState
+    in
+    board
+        |> Array.set y newRow
 
 
 type CellState
@@ -25,8 +38,8 @@ type CellState
 
 
 settings =
-    { width = 20
-    , height = 20
+    { width = 21
+    , height = 21
     , cellColorAlive = "#F00"
     , cellColorDead = "#000"
     , cellSide = "10px"
@@ -40,7 +53,16 @@ init =
 
 initialBoard : Board
 initialBoard =
-    List.repeat settings.height (List.repeat settings.width Dead)
+    let
+        emptyBoard =
+            Array.repeat settings.height (Array.repeat settings.width Dead)
+    in
+    emptyBoard
+        |> setCell { x = 10, y = 10 } Alive
+        |> setCell { x = 10, y = 8 } Alive
+        |> setCell { x = 12, y = 10 } Alive
+        |> setCell { x = 10, y = 12 } Alive
+        |> setCell { x = 8, y = 10 } Alive
 
 
 
@@ -74,9 +96,15 @@ viewBoard : Board -> List (Html msg)
 viewBoard board =
     let
         rowToCells row =
-            Html.tr [] (List.map viewCell row)
+            Html.tr []
+                (row
+                    |> Array.map viewCell
+                    |> Array.toList
+                )
     in
-    List.map rowToCells board
+    board
+        |> Array.map rowToCells
+        |> Array.toList
 
 
 viewCell : CellState -> Html msg
