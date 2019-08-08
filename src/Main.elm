@@ -18,6 +18,9 @@ type alias Model =
     { board : Board
     , generation : Int
     , pause : Bool
+    , colorAlive : String
+    , colorDead : String
+    , colorBorder : String
     }
 
 
@@ -69,9 +72,7 @@ newCell state =
 settings =
     { width = 51
     , height = 51
-    , borderStyle = "1px solid #bbb"
-    , cellColorAlive = "#000"
-    , cellColorDead = "#fff"
+    , borderStyle = "1px solid #000"
     , cellSide = "10px"
     }
 
@@ -81,6 +82,9 @@ init =
     ( { board = initialBoard
       , generation = 0
       , pause = True
+      , colorAlive = "#000000"
+      , colorDead = "#ffffff"
+      , colorBorder = "#bbbbbb"
       }
     , Cmd.none
     )
@@ -112,6 +116,9 @@ initialBoard =
 type Msg
     = Tick Time.Posix
     | TogglePause
+    | InputColorAlive String
+    | InputColorDead String
+    | InputColorBorder String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,6 +134,21 @@ update msg model =
 
         TogglePause ->
             ( { model | pause = not model.pause }
+            , Cmd.none
+            )
+
+        InputColorAlive color ->
+            ( { model | colorAlive = color }
+            , Cmd.none
+            )
+
+        InputColorDead color ->
+            ( { model | colorDead = color }
+            , Cmd.none
+            )
+
+        InputColorBorder color ->
+            ( { model | colorBorder = color }
             , Cmd.none
             )
 
@@ -216,42 +238,47 @@ view model =
         , Html.table
             [ A.style "border-collapse" "collapse"
             , A.style "border" settings.borderStyle
+            , A.style "border-color" model.colorBorder
             ]
-            (viewBoard model.board)
+            (viewBoard model)
         , Html.p [] [ Html.text ("Generation: " ++ String.fromInt model.generation) ]
         , viewPauseButton model.pause
+        , viewColorInput InputColorAlive model.colorAlive
+        , viewColorInput InputColorDead model.colorDead
+        , viewColorInput InputColorBorder model.colorBorder
         ]
 
 
-viewBoard : Board -> List (Html Msg)
-viewBoard board =
+viewBoard : Model -> List (Html Msg)
+viewBoard model =
     let
         rowToCells row =
             Html.tr []
                 (row
-                    |> Array.map viewCell
+                    |> Array.map (viewCell model)
                     |> Array.toList
                 )
     in
-    board
+    model.board
         |> Array.map rowToCells
         |> Array.toList
 
 
-viewCell : Cell -> Html Msg
-viewCell { state } =
+viewCell : Model -> Cell -> Html Msg
+viewCell model { state } =
     let
         color =
             case state of
                 Dead ->
-                    settings.cellColorDead
+                    model.colorDead
 
                 _ ->
-                    settings.cellColorAlive
+                    model.colorAlive
     in
     Html.td
         [ A.style "background-color" color
         , A.style "border" settings.borderStyle
+        , A.style "border-color" model.colorBorder
         , A.style "width" settings.cellSide
         , A.style "height" settings.cellSide
         ]
@@ -270,6 +297,16 @@ viewPauseButton pause =
                     "Pause"
     in
     Html.button [ E.onClick TogglePause ] [ Html.text text ]
+
+
+viewColorInput : (String -> Msg) -> String -> Html Msg
+viewColorInput toMsg color =
+    Html.input
+        [ A.type_ "color"
+        , A.value color
+        , E.onInput toMsg
+        ]
+        []
 
 
 
