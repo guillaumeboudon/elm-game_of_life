@@ -21,6 +21,7 @@ type alias Model =
     , colorAlive : String
     , colorDead : String
     , colorBorder : String
+    , refreshPeriod : Int
     }
 
 
@@ -72,7 +73,7 @@ newCell state =
 settings =
     { width = 51
     , height = 51
-    , borderStyle = "1px solid #000"
+    , borderStyle = "1px solid"
     , cellSide = "10px"
     }
 
@@ -85,6 +86,7 @@ init =
       , colorAlive = "#000000"
       , colorDead = "#ffffff"
       , colorBorder = "#bbbbbb"
+      , refreshPeriod = 100
       }
     , Cmd.none
     )
@@ -119,6 +121,7 @@ type Msg
     | InputColorAlive String
     | InputColorDead String
     | InputColorBorder String
+    | InputRefreshPeriod Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -137,18 +140,23 @@ update msg model =
             , Cmd.none
             )
 
-        InputColorAlive color ->
-            ( { model | colorAlive = color }
+        InputColorAlive value ->
+            ( { model | colorAlive = value }
             , Cmd.none
             )
 
-        InputColorDead color ->
-            ( { model | colorDead = color }
+        InputColorDead value ->
+            ( { model | colorDead = value }
             , Cmd.none
             )
 
-        InputColorBorder color ->
-            ( { model | colorBorder = color }
+        InputColorBorder value ->
+            ( { model | colorBorder = value }
+            , Cmd.none
+            )
+
+        InputRefreshPeriod value ->
+            ( { model | refreshPeriod = value }
             , Cmd.none
             )
 
@@ -246,6 +254,7 @@ view model =
         , viewColorInput InputColorAlive model.colorAlive
         , viewColorInput InputColorDead model.colorDead
         , viewColorInput InputColorBorder model.colorBorder
+        , viewRefreshPeriodInput model.refreshPeriod
         ]
 
 
@@ -309,6 +318,19 @@ viewColorInput toMsg color =
         []
 
 
+viewRefreshPeriodInput : Int -> Html Msg
+viewRefreshPeriodInput refreshPeriod =
+    Html.input
+        [ A.type_ "range"
+        , A.value (String.fromInt refreshPeriod)
+        , A.min "50"
+        , A.max "1000"
+        , A.step "50"
+        , E.onInput (InputRefreshPeriod << Maybe.withDefault refreshPeriod << String.toInt)
+        ]
+        []
+
+
 
 -------------------------------------------------------------------------------
 -- MAIN
@@ -322,7 +344,7 @@ subscriptions model =
             Sub.none
 
         _ ->
-            Time.every 100 Tick
+            Time.every (toFloat model.refreshPeriod) Tick
 
 
 
