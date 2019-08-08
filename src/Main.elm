@@ -113,19 +113,7 @@ init =
 
 initialBoard : Board
 initialBoard =
-    let
-        emptyBoard =
-            Array.repeat settings.height (Array.repeat settings.width (newCell Dead))
-    in
-    emptyBoard
-        |> setCell (Coordinates 0 0) Alive
-        |> setCell (Coordinates 1 1) Alive
-        |> setCell (Coordinates 2 1) Alive
-        |> setCell (Coordinates 0 2) Alive
-        |> setCell (Coordinates 1 2) Alive
-        |> setCell (Coordinates 15 2) Alive
-        |> setCell (Coordinates 16 2) Alive
-        |> setCell (Coordinates 17 2) Alive
+    Array.repeat settings.height (Array.repeat settings.width (newCell Dead))
 
 
 
