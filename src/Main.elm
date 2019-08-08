@@ -40,6 +40,13 @@ setCell { x, y } state board =
         |> Array.set y newRow
 
 
+getCell : Coordinates -> Board -> Maybe Cell
+getCell { x, y } board =
+    board
+        |> Array.get y
+        |> Maybe.andThen (Array.get x)
+
+
 type CellState
     = Dead
     | Alive
@@ -80,11 +87,9 @@ initialBoard =
             Array.repeat settings.height (Array.repeat settings.width (newCell Dead))
     in
     emptyBoard
+        |> setCell (Coordinates 9 10) Alive
         |> setCell (Coordinates 10 10) Alive
-        |> setCell (Coordinates 10 8) Alive
-        |> setCell (Coordinates 12 10) Alive
-        |> setCell (Coordinates 10 12) Alive
-        |> setCell (Coordinates 8 10) Alive
+        |> setCell (Coordinates 11 10) Alive
 
 
 
@@ -101,9 +106,81 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            ( model
+            ( { model | board = processNeighbours model.board }
             , Cmd.none
             )
+
+
+processNeighbours : Board -> Board
+processNeighbours board =
+    board
+        |> Array.indexedMap (processRow board)
+        |> applyRules
+
+
+processRow : Board -> Int -> Array Cell -> Array Cell
+processRow board y row =
+    Array.indexedMap (processCell board y) row
+
+
+processCell : Board -> Int -> Int -> Cell -> Cell
+processCell board y x cell =
+    let
+        checkNeighbour x_ y_ cell_ =
+            case getCell (Coordinates x_ y_) board of
+                Nothing ->
+                    cell_
+
+                Just neighbour ->
+                    case neighbour.state of
+                        Dead ->
+                            cell_
+
+                        _ ->
+                            { cell_
+                                | neighbours =
+                                    case cell_.neighbours of
+                                        Nothing ->
+                                            Just 1
+
+                                        Just n ->
+                                            Just (n + 1)
+                            }
+    in
+    cell
+        |> checkNeighbour (x - 1) (y - 1)
+        |> checkNeighbour x (y - 1)
+        |> checkNeighbour (x + 1) (y - 1)
+        |> checkNeighbour (x - 1) y
+        |> checkNeighbour (x + 1) y
+        |> checkNeighbour (x - 1) (y + 1)
+        |> checkNeighbour x (y + 1)
+        |> checkNeighbour (x + 1) (y + 1)
+
+
+applyRules : Board -> Board
+applyRules board =
+    let
+        apply row =
+            Array.map applyRule row
+    in
+    Array.map apply board
+
+
+applyRule : Cell -> Cell
+applyRule { state, neighbours } =
+    case ( state, neighbours ) of
+        ( Dead, Just 3 ) ->
+            newCell Alive
+
+        ( Alive, Just 2 ) ->
+            newCell Alive
+
+        ( Alive, Just 3 ) ->
+            newCell Alive
+
+        _ ->
+            newCell Dead
 
 
 
