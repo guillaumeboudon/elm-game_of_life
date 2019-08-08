@@ -47,6 +47,25 @@ setCell { x, y } state board =
         |> Array.set y newRow
 
 
+toggleCell : Coordinates -> Board -> Board
+toggleCell coordinates board =
+    let
+        { state } =
+            board
+                |> getCell coordinates
+                |> Maybe.withDefault (newCell Dead)
+
+        newState =
+            case state of
+                Dead ->
+                    Alive
+
+                _ ->
+                    Dead
+    in
+    setCell coordinates newState board
+
+
 getCell : Coordinates -> Board -> Maybe Cell
 getCell { x, y } board =
     board
@@ -122,6 +141,7 @@ type Msg
     | InputColorDead String
     | InputColorBorder String
     | InputRefreshPeriod Int
+    | ToggleCell Coordinates
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -157,6 +177,11 @@ update msg model =
 
         InputRefreshPeriod value ->
             ( { model | refreshPeriod = value }
+            , Cmd.none
+            )
+
+        ToggleCell coordinates ->
+            ( { model | board = toggleCell coordinates model.board }
             , Cmd.none
             )
 
@@ -261,20 +286,20 @@ view model =
 viewBoard : Model -> List (Html Msg)
 viewBoard model =
     let
-        rowToCells row =
+        rowToCells y row =
             Html.tr []
                 (row
-                    |> Array.map (viewCell model)
+                    |> Array.indexedMap (viewCell model y)
                     |> Array.toList
                 )
     in
     model.board
-        |> Array.map rowToCells
+        |> Array.indexedMap rowToCells
         |> Array.toList
 
 
-viewCell : Model -> Cell -> Html Msg
-viewCell model { state } =
+viewCell : Model -> Int -> Int -> Cell -> Html Msg
+viewCell model y x { state } =
     let
         color =
             case state of
@@ -290,6 +315,7 @@ viewCell model { state } =
         , A.style "border-color" model.colorBorder
         , A.style "width" settings.cellSide
         , A.style "height" settings.cellSide
+        , E.onClick (ToggleCell (Coordinates x y))
         ]
         []
 
