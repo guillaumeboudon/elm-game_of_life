@@ -19,16 +19,22 @@ type alias Model =
 
 
 type alias Board =
-    Array (Array CellState)
+    Array (Array Cell)
 
 
-setCell : { x : Int, y : Int } -> CellState -> Board -> Board
-setCell { x, y } cellState board =
+type alias Coordinates =
+    { x : Int
+    , y : Int
+    }
+
+
+setCell : Coordinates -> CellState -> Board -> Board
+setCell { x, y } state board =
     let
         newRow =
             Array.get y board
                 |> Maybe.withDefault Array.empty
-                |> Array.set x cellState
+                |> Array.set x (newCell state)
     in
     board
         |> Array.set y newRow
@@ -37,6 +43,17 @@ setCell { x, y } cellState board =
 type CellState
     = Dead
     | Alive
+
+
+type alias Cell =
+    { state : CellState
+    , neighbours : Maybe Int
+    }
+
+
+newCell : CellState -> Cell
+newCell state =
+    Cell state Nothing
 
 
 settings =
@@ -51,8 +68,7 @@ settings =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { board = initialBoard
-      }
+    ( { board = initialBoard }
     , Cmd.none
     )
 
@@ -61,14 +77,14 @@ initialBoard : Board
 initialBoard =
     let
         emptyBoard =
-            Array.repeat settings.height (Array.repeat settings.width Dead)
+            Array.repeat settings.height (Array.repeat settings.width (newCell Dead))
     in
     emptyBoard
-        |> setCell { x = 10, y = 10 } Alive
-        |> setCell { x = 10, y = 8 } Alive
-        |> setCell { x = 12, y = 10 } Alive
-        |> setCell { x = 10, y = 12 } Alive
-        |> setCell { x = 8, y = 10 } Alive
+        |> setCell (Coordinates 10 10) Alive
+        |> setCell (Coordinates 10 8) Alive
+        |> setCell (Coordinates 12 10) Alive
+        |> setCell (Coordinates 10 12) Alive
+        |> setCell (Coordinates 8 10) Alive
 
 
 
@@ -123,11 +139,11 @@ viewBoard board =
         |> Array.toList
 
 
-viewCell : CellState -> Html Msg
-viewCell bool =
+viewCell : Cell -> Html Msg
+viewCell { state } =
     let
         color =
-            case bool of
+            case state of
                 Dead ->
                     settings.cellColorDead
 
